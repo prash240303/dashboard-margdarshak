@@ -97,14 +97,18 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
   );
 };
 
+import { uploadPdfToS3, uploadExcelToS3 } from "@/lib/s3";
+
 interface FileUploadSectionProps {
   onPdfUpload?: (file: File, sourceUrl: string) => Promise<void>;
   onExcelUpload?: (file: File) => Promise<void>;
+  onUploadSuccess?: () => void;
 }
 
 const FileUploadSection: React.FC<FileUploadSectionProps> = ({
-  onPdfUpload = async () => {},
-  onExcelUpload = async () => {},
+  onPdfUpload,
+  onExcelUpload,
+  onUploadSuccess,
 }) => {
   const [activeTab, setActiveTab] = useState("pdf");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -145,7 +149,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
       setUploadError(null);
       setUploadSuccess(false);
 
-      // Simulate progress
+      // Set up progress tracking
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
@@ -156,7 +160,13 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         });
       }, 300);
 
-      await onPdfUpload(pdfFile, sourceUrl);
+      // Upload to S3 with metadata
+      await uploadPdfToS3(pdfFile, sourceUrl);
+
+      // Call the onPdfUpload callback if provided
+      if (onPdfUpload) {
+        await onPdfUpload(pdfFile, sourceUrl);
+      }
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -164,12 +174,18 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
       setPdfFile(null);
       setSourceUrl("");
 
+      // Notify parent component of successful upload
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
+
       // Reset progress after a delay
       setTimeout(() => {
         setUploadProgress(0);
         setIsUploading(false);
       }, 1500);
     } catch (error) {
+      console.error("PDF upload error:", error);
       setUploadError("Failed to upload PDF file. Please try again.");
       setIsUploading(false);
       setUploadProgress(0);
@@ -187,7 +203,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
       setUploadError(null);
       setUploadSuccess(false);
 
-      // Simulate progress
+      // Set up progress tracking
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
@@ -198,12 +214,23 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         });
       }, 300);
 
-      await onExcelUpload(excelFile);
+      // Upload to S3
+      await uploadExcelToS3(excelFile);
+
+      // Call the onExcelUpload callback if provided
+      if (onExcelUpload) {
+        await onExcelUpload(excelFile);
+      }
 
       clearInterval(progressInterval);
       setUploadProgress(100);
       setUploadSuccess(true);
       setExcelFile(null);
+
+      // Notify parent component of successful upload
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
 
       // Reset progress after a delay
       setTimeout(() => {
@@ -211,6 +238,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         setIsUploading(false);
       }, 1500);
     } catch (error) {
+      console.error("Excel upload error:", error);
       setUploadError("Failed to upload Excel file. Please try again.");
       setIsUploading(false);
       setUploadProgress(0);

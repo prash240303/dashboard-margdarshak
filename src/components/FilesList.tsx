@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { listFilesFromS3, deleteFileFromS3 } from "@/lib/s3";
 import {
   Trash2,
   Eye,
@@ -59,7 +60,7 @@ const FilesList = ({
   files = [],
   onDelete = () => {},
   onView = () => {},
-  isLoading = false,
+  isLoading: initialLoading = false,
 }: FilesListProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<"name" | "type" | "uploadedAt">(
@@ -67,6 +68,9 @@ const FilesList = ({
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [sortedFiles, setSortedFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(initialLoading);
+  const [s3Files, setS3Files] = useState<File[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(files.length / itemsPerPage);
@@ -115,7 +119,49 @@ const FilesList = ({
     },
   ];
 
-  const displayFiles = files.length > 0 ? files : mockFiles;
+  const displayFiles =
+    s3Files.length > 0 ? s3Files : files.length > 0 ? files : mockFiles;
+
+  // Fetch files from S3
+  const fetchFiles = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const fetchedFiles = await listFilesFromS3();
+      setS3Files(fetchedFiles);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      setError("Failed to fetch files. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Load files on component mount
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      setIsLoading(true);
+      await deleteFileFromS3(fileId);
+
+      // Update the file list after deletion
+      setS3Files((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+
+      // Call the onDelete callback if provided
+      if (onDelete) {
+        onDelete(fileId);
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      setError("Failed to delete file. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Sort files when sort parameters change
   useEffect(() => {
@@ -272,7 +318,7 @@ const FilesList = ({
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => onDelete(file.id)}
+                                    onClick={() => handleDeleteFile(file.id)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     Delete

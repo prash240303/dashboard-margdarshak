@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import FileUploadSection from "./FileUploadSection";
@@ -7,6 +7,14 @@ import { motion } from "framer-motion";
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("upload");
+  const [refreshFiles, setRefreshFiles] = useState(0);
+
+  const handleUploadSuccess = useCallback(() => {
+    // Increment refresh counter to trigger file list refresh
+    setRefreshFiles((prev) => prev + 1);
+    // Switch to files tab
+    setActiveTab("files");
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 flex flex-col">
@@ -47,7 +55,7 @@ const HomePage = () => {
                   transition={{ duration: 0.3 }}
                 >
                   <h2 className="text-2xl font-semibold mb-6">Upload Files</h2>
-                  <FileUploadSection />
+                  <FileUploadSection onUploadSuccess={handleUploadSuccess} />
                 </motion.div>
               </TabsContent>
 
@@ -58,7 +66,7 @@ const HomePage = () => {
                   transition={{ duration: 0.3 }}
                 >
                   <h2 className="text-2xl font-semibold mb-6">Manage Files</h2>
-                  <FilesList />
+                  <FilesList key={`files-list-${refreshFiles}`} />
                 </motion.div>
               </TabsContent>
             </div>
