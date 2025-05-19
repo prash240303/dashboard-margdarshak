@@ -20,7 +20,11 @@ export default defineConfig({
     },
   },
   server: {
-    // @ts-ignore
     allowedHosts: true,
+    cors: {
+      origin: '*', // Allow all origins
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    }
   }
 });

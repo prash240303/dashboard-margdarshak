@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileUpIcon, FileSpreadsheetIcon, LinkIcon } from "lucide-react";
+import { uploadPdfToS3, uploadExcelToS3 } from "@/lib/s3";
 
 interface FileDropzoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -96,8 +97,6 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
     </div>
   );
 };
-
-import { uploadPdfToS3, uploadExcelToS3 } from "@/lib/s3";
 
 interface FileUploadSectionProps {
   onPdfUpload?: (file: File, sourceUrl: string) => Promise<void>;
