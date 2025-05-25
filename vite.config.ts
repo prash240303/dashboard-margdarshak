@@ -22,7 +22,7 @@ export default defineConfig({
   server: {
     allowedHosts: true,
     cors: {
-      origin: '*', // Allow all origins
+      origin: '*', 
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     }

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import FileUploadSection from "./FileUploadSection";
 import FilesList from "./FilesList";
 import { motion } from "framer-motion";
+import LinkToPDFUploadSection from "./LinkToHTML";
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("upload");
@@ -25,7 +26,7 @@ const HomePage = () => {
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-          PDF & Excel Upload Manager
+          Margdarkshak Chatbot Dashboard
         </h1>
         <p className="text-gray-600 mt-2">
           Upload, manage, and organize your PDF and Excel files
@@ -41,9 +42,10 @@ const HomePage = () => {
             className="w-full"
           >
             <div className="border-b px-6 py-4">
-              <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+              <TabsList className="grid w-full md:w-[450px] grid-cols-3">
                 <TabsTrigger value="upload">Upload Files</TabsTrigger>
                 <TabsTrigger value="files">Manage Files</TabsTrigger>
+                <TabsTrigger value="convert">Convert Link to PDF</TabsTrigger>
               </TabsList>
             </div>
 
@@ -67,6 +69,18 @@ const HomePage = () => {
                 >
                   <h2 className="text-2xl font-semibold mb-6">Manage Files</h2>
                   <FilesList key={`files-list-${refreshFiles}`} />
+                </motion.div>
+              </TabsContent>
+              <TabsContent value="convert" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <h2 className="text-2xl font-semibold mb-6">
+                    Convert Link to PDF
+                  </h2>
+                  <LinkToPDFUploadSection />
                 </motion.div>
               </TabsContent>
             </div>
